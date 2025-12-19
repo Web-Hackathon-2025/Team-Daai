@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mockProviders, mockRequests, delay } from '../utils/mockData';
 
 // Enable mock mode for UI testing (set to false when backend is ready)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // API Base URL - update in .env file
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://thinklikeacoder.com/api';
@@ -29,10 +29,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Only clear token and redirect if not already on login page
+      // and if it's not an auth endpoint (login/register)
+      const currentPath = window.location.pathname;
+      const isAuthEndpoint = error.config?.url?.includes('/auth/');
+      
+      if (!isAuthEndpoint && currentPath !== '/login' && currentPath !== '/register') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -75,7 +81,7 @@ export const login = async (email: string, password: string) => {
     };
   }
   // API expects 'login' field which can be email, username, or phone
-  return api.post('/auth/login', { login: email, password });
+  return api.post('/auth/login', { email, password });
 };
 
 export const register = async (userData: {
@@ -111,17 +117,27 @@ export const register = async (userData: {
       },
     };
   }
-  // API expects first_name, last_name, phone, password_confirmation
-  const nameParts = userData.name.split(' ');
-  const registerData = {
-    first_name: nameParts[0] || userData.name,
-    last_name: nameParts.slice(1).join(' ') || '',
+  // API actually expects name (not first_name/last_name based on error response)
+  const registerData: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    role: string;
+    phone?: string;
+  } = {
+    name: userData.name,
     email: userData.email,
     password: userData.password,
     password_confirmation: userData.password,
-    phone: userData.phone || '+923001234567',
     role: userData.role,
   };
+  
+  // Add phone if provided
+  if (userData.phone) {
+    registerData.phone = userData.phone;
+  }
+  
   return api.post('/auth/register', registerData);
 };
 
