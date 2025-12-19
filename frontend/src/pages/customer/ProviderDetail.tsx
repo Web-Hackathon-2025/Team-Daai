@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getProvider, createRequest } from '../../services/api';
-import Header from '../../components/layout/Header';
+import { getErrorMessage } from '../../utils/errorHandler';
+import {
+  parseAvailability,
+  getAvailableTimeSlots,
+  validateBookingTime,
+} from '../../utils/availabilityParser';
 
 interface Service {
   id: number;
@@ -46,34 +51,62 @@ const ProviderDetail = () => {
     address: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState('');
 
-  useEffect(() => {
-    if (id) {
-      loadProvider();
-    }
-  }, [id]);
+  // Parse availability
+  const availabilityInfo = useMemo(() => {
+    if (!provider?.availability) return null;
+    return parseAvailability(provider.availability);
+  }, [provider?.availability]);
+
+  // Get available time slots for selected date
+  const availableTimeSlots = useMemo(() => {
+    if (!requestData.requested_date || !availabilityInfo) return [];
+    const selectedDate = new Date(requestData.requested_date);
+    return getAvailableTimeSlots(selectedDate, availabilityInfo, 30);
+  }, [requestData.requested_date, availabilityInfo]);
 
   const loadProvider = async () => {
+    if (!id) return;
+    
     setLoading(true);
     setError('');
     try {
-      const response = await getProvider(parseInt(id!));
+      const response = await getProvider(parseInt(id));
       setProvider(response.data.data.provider);
       if (response.data.data.provider.services.length > 0) {
         setSelectedService(response.data.data.provider.services[0].id);
       }
-    } catch (err: any) {
-      setError('Failed to load provider details');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load provider details'));
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadProvider();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedService || !id) return;
 
+    // Validate availability
+    const validation = validateBookingTime(
+      requestData.requested_date,
+      requestData.requested_time,
+      availabilityInfo
+    );
+
+    if (!validation.valid) {
+      setBookingError(validation.message || 'Selected time is not available');
+      return;
+    }
+
+    setBookingError('');
     setSubmitting(true);
     try {
       await createRequest({
@@ -92,32 +125,33 @@ const ProviderDetail = () => {
         description: '',
         address: '',
       });
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to submit request');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, 'Failed to submit request'));
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Handle date change - validate and reset time if needed
+  const handleDateChange = (date: string) => {
+    setRequestData({ ...requestData, requested_date: date, requested_time: '' });
+    setBookingError('');
+  };
+
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
     );
   }
 
   if (error || !provider) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-600">{error || 'Provider not found'}</p>
             <Link to="/" className="mt-4 text-indigo-600 hover:underline">
@@ -125,14 +159,11 @@ const ProviderDetail = () => {
             </Link>
           </div>
         </div>
-      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/" className="text-indigo-600 hover:text-indigo-700 mb-4 inline-block">
           ← Back to Browse
@@ -216,36 +247,76 @@ const ProviderDetail = () => {
                   </p>
                 </div>
 
+                {provider.availability && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-medium">Available:</span> {provider.availability}
+                    </p>
+                  </div>
+                )}
+
+                {bookingError && (
+                  <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                    {bookingError}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date
+                      Date *
                     </label>
                     <input
                       type="date"
                       value={requestData.requested_date}
-                      onChange={(e) =>
-                        setRequestData({ ...requestData, requested_date: e.target.value })
-                      }
+                      onChange={(e) => handleDateChange(e.target.value)}
                       required
                       min={new Date().toISOString().split('T')[0]}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     />
+                    {availabilityInfo && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        Select from available days
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Time
+                      Time *
                     </label>
-                    <input
-                      type="time"
-                      value={requestData.requested_time}
-                      onChange={(e) =>
-                        setRequestData({ ...requestData, requested_time: e.target.value })
-                      }
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                    />
+                    {availableTimeSlots.length > 0 ? (
+                      <select
+                        value={requestData.requested_time}
+                        onChange={(e) => {
+                          setRequestData({ ...requestData, requested_time: e.target.value });
+                          setBookingError('');
+                        }}
+                        required
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      >
+                        <option value="">Select Time</option>
+                        {availableTimeSlots.map((time) => {
+                          const [hour, minute] = time.split(':').map(Number);
+                          const period = hour >= 12 ? 'PM' : 'AM';
+                          const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                          const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+                          return (
+                            <option key={time} value={time}>
+                              {displayTime}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    ) : requestData.requested_date ? (
+                      <div className="w-full px-4 py-2 border border-red-300 rounded-lg bg-red-50 text-red-700 text-sm">
+                        No available times for this date
+                      </div>
+                    ) : (
+                      <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm">
+                        Select a date first
+                      </div>
+                    )}
                   </div>
                 </div>
 

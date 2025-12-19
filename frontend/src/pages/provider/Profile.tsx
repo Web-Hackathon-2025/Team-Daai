@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyProviderProfile, updateProviderProfile } from '../../services/api';
-import Header from '../../components/layout/Header';
+import { getErrorMessage } from '../../utils/errorHandler';
 
 interface Service {
   id?: number;
@@ -10,19 +10,7 @@ interface Service {
   description: string;
 }
 
-interface Provider {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  category: string;
-  location: string;
-  availability: string;
-  services: Service[];
-}
-
 const Profile = () => {
-  const [provider, setProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,16 +23,11 @@ const Profile = () => {
   });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
   const loadProfile = async () => {
     setLoading(true);
     try {
       const response = await getMyProviderProfile();
       const profile = response.data.data.provider;
-      setProvider(profile);
       setFormData({
         name: profile.name || '',
         phone: profile.phone || '',
@@ -53,7 +36,7 @@ const Profile = () => {
         availability: profile.availability || '',
         services: profile.services || [],
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load profile', err);
       // Initialize with empty form if profile doesn't exist
       setFormData({
@@ -69,6 +52,10 @@ const Profile = () => {
     }
   };
 
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -76,8 +63,8 @@ const Profile = () => {
       await updateProviderProfile(formData);
       alert('Profile updated successfully!');
       navigate('/provider');
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to update profile');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, 'Failed to update profile'));
     } finally {
       setSaving(false);
     }
@@ -116,22 +103,17 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Manage Profile</h1>
@@ -209,14 +191,26 @@ const Profile = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Availability *
             </label>
-            <input
-              type="text"
+            <select
               value={formData.availability}
               onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-              placeholder="e.g., Mon-Fri 9AM-6PM"
-            />
+            >
+              <option value="">Select Availability</option>
+              <option value="Mon-Fri 9AM-6PM">Mon-Fri 9AM-6PM</option>
+              <option value="Mon-Fri 8AM-5PM">Mon-Fri 8AM-5PM</option>
+              <option value="Mon-Fri 10AM-7PM">Mon-Fri 10AM-7PM</option>
+              <option value="Mon-Sat 9AM-6PM">Mon-Sat 9AM-6PM</option>
+              <option value="Mon-Sat 8AM-7PM">Mon-Sat 8AM-7PM</option>
+              <option value="Mon-Sun 9AM-6PM">Mon-Sun 9AM-6PM (All Week)</option>
+              <option value="Mon-Sun 8AM-8PM">Mon-Sun 8AM-8PM (All Week Extended)</option>
+              <option value="Mon-Wed 9AM-5PM">Mon-Wed 9AM-5PM</option>
+              <option value="Mon-Thu 9AM-6PM">Mon-Thu 9AM-6PM</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Select your working days and hours
+            </p>
           </div>
 
           <div>

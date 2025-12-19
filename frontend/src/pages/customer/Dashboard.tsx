@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getProviders } from '../../services/api';
-import Header from '../../components/layout/Header';
 
 interface Provider {
   id: number;
@@ -30,32 +29,30 @@ const Dashboard = () => {
     search: '',
   });
 
-  useEffect(() => {
-    loadProviders();
-  }, [filters]);
-
   const loadProviders = async () => {
     setLoading(true);
     setError('');
     try {
       const response = await getProviders(filters);
       setProviders(response.data.data.providers || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Failed to load service providers');
       console.error(err);
-      // For development: use mock data if API fails
       setProviders([]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadProviders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
   const categories = ['plumber', 'electrician', 'tutor', 'cleaner', 'technician', 'carpenter', 'painter'];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Find Service Providers</h1>
 

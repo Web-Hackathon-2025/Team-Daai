@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getRequests } from '../../services/api';
-import Header from '../../components/layout/Header';
 
 interface Request {
   id: number;
@@ -20,16 +19,12 @@ const ProviderDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
 
-  useEffect(() => {
-    loadRequests();
-  }, [statusFilter]);
-
   const loadRequests = async () => {
     setLoading(true);
     try {
       const response = await getRequests(statusFilter || undefined);
       setRequests(response.data.data.requests || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load requests', err);
       setRequests([]);
     } finally {
@@ -37,14 +32,20 @@ const ProviderDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    loadRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
+
   const handleAccept = async (id: number) => {
     try {
       const { acceptRequest } = await import('../../services/api');
       await acceptRequest(id);
       loadRequests();
       alert('Request accepted successfully!');
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to accept request');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || 'Failed to accept request');
     }
   };
 
@@ -55,8 +56,9 @@ const ProviderDashboard = () => {
       await rejectRequest(id);
       loadRequests();
       alert('Request rejected');
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to reject request');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || 'Failed to reject request');
     }
   };
 
@@ -66,8 +68,9 @@ const ProviderDashboard = () => {
       await completeRequest(id);
       loadRequests();
       alert('Request marked as completed!');
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to complete request');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || 'Failed to complete request');
     }
   };
 
@@ -91,8 +94,6 @@ const ProviderDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Provider Dashboard</h1>

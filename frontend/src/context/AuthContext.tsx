@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 import { login as loginAPI, register as registerAPI } from '../services/api';
 
 interface User {
@@ -11,37 +13,37 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<unknown>;
   register: (userData: {
     name: string;
     email: string;
     password: string;
     role: 'customer' | 'service_provider';
-  }) => Promise<any>;
+  }) => Promise<unknown>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for existing token on mount
+  // Initialize user from localStorage
+  const getUserFromStorage = (): User | null => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        return JSON.parse(userData);
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  };
+
+  const [user, setUser] = useState<User | null>(getUserFromStorage);
+  const [loading] = useState(false); // Loading is false since we initialize synchronously
 
   const login = async (email: string, password: string) => {
     const response = await loginAPI(email, password);
@@ -52,14 +54,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return response;
   };
 
-  const register = async (userData: {
+  const register = async (newUserData: {
     name: string;
     email: string;
     password: string;
     role: 'customer' | 'service_provider';
   }) => {
-    const response = await registerAPI(userData);
-    const { token, user: userData: newUser } = response.data.data;
+    const response = await registerAPI(newUserData);
+    const { token, user: newUser } = response.data.data;
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);

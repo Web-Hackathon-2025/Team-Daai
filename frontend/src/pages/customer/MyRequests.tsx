@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getRequests } from '../../services/api';
-import Header from '../../components/layout/Header';
+import ReviewForm from '../../components/common/ReviewForm';
+import SuccessMessage from '../../components/common/SuccessMessage';
 
 interface Request {
   id: number;
+  provider_id?: number;
   provider_name: string;
   service_name: string;
   status: 'requested' | 'confirmed' | 'completed' | 'cancelled';
@@ -12,12 +14,15 @@ interface Request {
   requested_time: string;
   address: string;
   created_at: string;
+  has_review?: boolean;
 }
 
 const MyRequests = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [showReviewForm, setShowReviewForm] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     loadRequests();
@@ -34,6 +39,13 @@ const MyRequests = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReviewSuccess = () => {
+    setShowReviewForm(null);
+    setSuccessMessage('Review submitted successfully!');
+    setTimeout(() => setSuccessMessage(''), 5000);
+    loadRequests(); // Reload to update has_review status
   };
 
   const getStatusColor = (status: string) => {
@@ -53,8 +65,6 @@ const MyRequests = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Service Requests</h1>
@@ -65,6 +75,13 @@ const MyRequests = () => {
             Browse Services
           </Link>
         </div>
+
+        {successMessage && (
+          <SuccessMessage
+            message={successMessage}
+            onClose={() => setSuccessMessage('')}
+          />
+        )}
 
         {/* Filter */}
         <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -125,7 +142,7 @@ const MyRequests = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                   <div>
                     <p className="text-gray-500">Requested Date</p>
                     <p className="font-medium text-gray-900">{request.requested_date}</p>
@@ -145,6 +162,36 @@ const MyRequests = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Review Section for Completed Requests */}
+                {request.status === 'completed' && request.provider_id && (
+                  <div className="border-t pt-4 mt-4">
+                    {showReviewForm === request.id ? (
+                      <ReviewForm
+                        requestId={request.id}
+                        providerId={request.provider_id}
+                        onSuccess={handleReviewSuccess}
+                        onCancel={() => setShowReviewForm(null)}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-600">
+                          {request.has_review
+                            ? 'You have already reviewed this service'
+                            : 'Share your experience with this service'}
+                        </p>
+                        {!request.has_review && (
+                          <button
+                            onClick={() => setShowReviewForm(request.id)}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm"
+                          >
+                            Write a Review
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

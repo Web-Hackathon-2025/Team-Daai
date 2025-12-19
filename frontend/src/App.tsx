@@ -88,7 +88,6 @@ function AppRoutes() {
         />
       </Routes>
     </>
-    </>
   );
 }
 
