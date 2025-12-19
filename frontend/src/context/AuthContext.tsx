@@ -46,12 +46,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading] = useState(false); // Loading is false since we initialize synchronously
 
   const login = async (email: string, password: string) => {
-    const response = await loginAPI(email, password);
-    const { access_token, user: userData } = response.data.data;
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    return response;
+    try {
+      const response = await loginAPI(email, password);
+      // API response structure: { status, message, data: { user, token } }
+      // So we need response.data.data
+      const responseData = response.data?.data || response.data;
+      // API actually returns 'token' not 'access_token' (even though docs say access_token)
+      const token = responseData.token || responseData.access_token;
+      const userData = responseData.user;
+      
+      if (!token || !userData) {
+        console.error('Missing token or user data:', { token: !!token, userData: !!userData, responseData });
+        throw new Error('Invalid response from server: missing token or user data');
+      }
+      
+      // Ensure user has required fields
+      const user: User = {
+        id: userData.id,
+        name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email,
+        email: userData.email,
+        role: userData.role,
+      };
+      
+      localStorage.setItem('access_token', token); // Store as access_token for consistency
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const register = async (newUserData: {
@@ -61,12 +85,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: 'customer' | 'service_provider';
     phone?: string;
   }) => {
-    const response = await registerAPI(newUserData);
-    const { access_token, user: newUser } = response.data.data;
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setUser(newUser);
-    return response;
+    try {
+      const response = await registerAPI(newUserData);
+      // Handle both response structures: response.data.data or response.data
+      const responseData = response.data?.data || response.data;
+      // API returns 'token' not 'access_token' (or 'access_token' for compatibility)
+      const token = responseData.token || responseData.access_token;
+      const userData = responseData.user;
+      
+      if (!token || !userData) {
+        throw new Error('Invalid response from server');
+      }
+      
+      // Ensure user has required fields
+      const user: User = {
+        id: userData.id,
+        name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email,
+        email: userData.email,
+        role: userData.role,
+      };
+      
+      localStorage.setItem('access_token', token); // Store as access_token for consistency
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
