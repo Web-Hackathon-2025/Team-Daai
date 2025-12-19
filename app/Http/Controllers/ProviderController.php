@@ -14,8 +14,19 @@ class ProviderController extends Controller
     use ResponseAPI;
 
     /**
-     * Get all service providers with optional filters
-     * GET /api/providers
+     * @OA\Get(
+     *     path="/api/providers",
+     *     tags={"Service Providers"},
+     *     summary="Get all service providers",
+     *     description="Retrieve list of service providers with optional filters (category, location, search)",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="category", in="query", required=false, @OA\Schema(type="string"), description="Filter by service category"),
+     *     @OA\Parameter(name="location", in="query", required=false, @OA\Schema(type="string"), description="Filter by location"),
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string"), description="Search by name or service"),
+     *     @OA\Parameter(name="limit", in="query", required=false, @OA\Schema(type="integer", default=10), description="Items per page"),
+     *     @OA\Response(response=200, description="Service providers retrieved successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function index(Request $request)
     {
@@ -86,8 +97,16 @@ class ProviderController extends Controller
     }
 
     /**
-     * Get single service provider details
-     * GET /api/providers/{id}
+     * @OA\Get(
+     *     path="/api/providers/{id}",
+     *     tags={"Service Providers"},
+     *     summary="Get provider details",
+     *     description="Get detailed information about a specific service provider including services and reviews",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer"), description="Provider ID"),
+     *     @OA\Response(response=200, description="Provider details retrieved successfully"),
+     *     @OA\Response(response=404, description="Provider not found")
+     * )
      */
     public function show($id)
     {
@@ -132,8 +151,15 @@ class ProviderController extends Controller
     }
 
     /**
-     * Get current service provider's own profile
-     * GET /api/providers/me
+     * @OA\Get(
+     *     path="/api/providers/me",
+     *     tags={"Service Providers"},
+     *     summary="Get own provider profile",
+     *     description="Service provider can view their own profile and services",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Profile retrieved successfully"),
+     *     @OA\Response(response=403, description="Access denied - not a service provider")
+     * )
      */
     public function getOwnProfile()
     {
@@ -160,8 +186,25 @@ class ProviderController extends Controller
     }
 
     /**
-     * Update service provider profile
-     * PUT /api/providers/me
+     * @OA\Put(
+     *     path="/api/providers/me",
+     *     tags={"Service Providers"},
+     *     summary="Update own provider profile",
+     *     description="Service provider can update their profile information",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="phone", type="string", example="+1234567890"),
+     *             @OA\Property(property="category", type="string", example="Electrician"),
+     *             @OA\Property(property="location", type="string", example="New York, NY"),
+     *             @OA\Property(property="availability", type="string", example="Mon-Fri 9AM-5PM")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Profile updated successfully"),
+     *     @OA\Response(response=403, description="Access denied")
+     * )
      */
     public function updateOwnProfile(Request $request)
     {

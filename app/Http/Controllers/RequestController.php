@@ -15,8 +15,16 @@ class RequestController extends Controller
     use ResponseAPI;
 
     /**
-     * Get all requests (filtered by user role)
-     * GET /api/requests
+     * @OA\Get(
+     *     path="/api/requests",
+     *     tags={"Service Requests"},
+     *     summary="Get all service requests",
+     *     description="Retrieve service requests filtered by user role. Customers see their requests, providers see requests for them.",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"requested", "confirmed", "completed", "cancelled"})),
+     *     @OA\Response(response=200, description="Requests retrieved successfully"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function index(Request $request)
     {
@@ -69,8 +77,27 @@ class RequestController extends Controller
     }
 
     /**
-     * Create a new service request
-     * POST /api/requests
+     * @OA\Post(
+     *     path="/api/requests",
+     *     tags={"Service Requests"},
+     *     summary="Create new service request",
+     *     description="Customer creates a booking request for a service provider",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"provider_id", "service_id", "requested_date", "requested_time", "address"},
+     *             @OA\Property(property="provider_id", type="integer", example=2),
+     *             @OA\Property(property="service_id", type="integer", example=1),
+     *             @OA\Property(property="requested_date", type="string", format="date", example="2025-12-25"),
+     *             @OA\Property(property="requested_time", type="string", example="10:00 AM"),
+     *             @OA\Property(property="description", type="string", example="Need electrical wiring repair"),
+     *             @OA\Property(property="address", type="string", example="123 Main St, New York, NY")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Service request created successfully"),
+     *     @OA\Response(response=400, description="Validation error")
+     * )
      */
     public function store(Request $request)
     {
@@ -126,8 +153,17 @@ class RequestController extends Controller
     }
 
     /**
-     * Get single request details
-     * GET /api/requests/{id}
+     * @OA\Get(
+     *     path="/api/requests/{id}",
+     *     tags={"Service Requests"},
+     *     summary="Get request details",
+     *     description="Get detailed information about a specific service request",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Request details retrieved"),
+     *     @OA\Response(response=403, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Request not found")
+     * )
      */
     public function show($id)
     {
@@ -171,8 +207,17 @@ class RequestController extends Controller
     }
 
     /**
-     * Accept a service request
-     * PUT /api/requests/{id}/accept
+     * @OA\Put(
+     *     path="/api/requests/{id}/accept",
+     *     tags={"Service Requests"},
+     *     summary="Accept service request",
+     *     description="Service provider accepts a requested booking",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Request accepted"),
+     *     @OA\Response(response=400, description="Invalid status transition"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
      */
     public function accept($id)
     {
@@ -208,8 +253,21 @@ class RequestController extends Controller
     }
 
     /**
-     * Reject a service request
-     * PUT /api/requests/{id}/reject
+     * @OA\Put(
+     *     path="/api/requests/{id}/reject",
+     *     tags={"Service Requests"},
+     *     summary="Reject service request",
+     *     description="Service provider rejects a requested booking",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="reason", type="string", example="Not available on requested date")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Request rejected"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
      */
     public function reject(Request $request, $id)
     {
@@ -243,8 +301,25 @@ class RequestController extends Controller
     }
 
     /**
-     * Reschedule a service request
-     * PUT /api/requests/{id}/reschedule
+     * @OA\Put(
+     *     path="/api/requests/{id}/reschedule",
+     *     tags={"Service Requests"},
+     *     summary="Reschedule service request",
+     *     description="Service provider reschedules a booking to a new date/time",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"new_date", "new_time"},
+     *             @OA\Property(property="new_date", type="string", format="date", example="2025-12-26"),
+     *             @OA\Property(property="new_time", type="string", example="2:00 PM"),
+     *             @OA\Property(property="reason", type="string", example="Previous booking conflict")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Request rescheduled"),
+     *     @OA\Response(response=400, description="Validation error")
+     * )
      */
     public function reschedule(Request $request, $id)
     {
@@ -290,8 +365,17 @@ class RequestController extends Controller
     }
 
     /**
-     * Mark request as completed
-     * PUT /api/requests/{id}/complete
+     * @OA\Put(
+     *     path="/api/requests/{id}/complete",
+     *     tags={"Service Requests"},
+     *     summary="Mark request as completed",
+     *     description="Service provider marks a confirmed request as completed",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Request marked as completed"),
+     *     @OA\Response(response=400, description="Invalid status"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
      */
     public function complete($id)
     {
@@ -325,8 +409,17 @@ class RequestController extends Controller
     }
 
     /**
-     * Cancel a request (customer or provider can cancel)
-     * PUT /api/requests/{id}/cancel
+     * @OA\Put(
+     *     path="/api/requests/{id}/cancel",
+     *     tags={"Service Requests"},
+     *     summary="Cancel service request",
+     *     description="Customer or provider can cancel a requested/confirmed booking",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Request cancelled"),
+     *     @OA\Response(response=400, description="Invalid status"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
      */
     public function cancel($id)
     {

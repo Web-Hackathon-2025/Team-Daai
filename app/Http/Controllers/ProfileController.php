@@ -42,19 +42,13 @@ class ProfileController extends Controller
      *                 @OA\Property(property="phone", type="string", example="+1234567890"),
      *                 @OA\Property(property="alternate_phone", type="string", example="+0987654321"),
      *                 @OA\Property(property="profile_picture", type="string", example="https://api.example.com/storage/profiles/user-1.jpg"),
-     *                 @OA\Property(property="business_id", type="integer"),
-     *                 @OA\Property(property="location_id", type="integer"),
      *                 @OA\Property(
-     *                     property="business",
+     *                     property="provider_profile",
      *                     type="object",
      *                     @OA\Property(property="id", type="integer"),
-     *                     @OA\Property(property="name", type="string")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="location",
-     *                     type="object",
-     *                     @OA\Property(property="id", type="integer"),
-     *                     @OA\Property(property="name", type="string")
+     *                     @OA\Property(property="category", type="string", example="Plumber"),
+     *                     @OA\Property(property="location", type="string"),
+     *                     @OA\Property(property="is_approved", type="boolean")
      *                 ),
      *                 @OA\Property(
      *                     property="roles",
@@ -73,8 +67,7 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user()->load([
-            "business:id,name",
-            "location:id,name",
+            "providerProfile",
             "roles:id,name",
         ]);
 
@@ -168,8 +161,7 @@ class ProfileController extends Controller
             );
 
             $user->load([
-                "business:id,name",
-                "location:id,name",
+                "providerProfile",
                 "roles:id,name",
             ]);
 
@@ -269,13 +261,11 @@ class ProfileController extends Controller
             // Apply updates
             $user->update($updates);
 
-            // Reload relations and add profile_picture_url if available
+            // Reload relations
             $user->load([
-                "business:id,name",
-                "location:id,name",
+                "providerProfile",
                 "roles:id,name",
             ]);
-
 
             return $this->success("Profile updated successfully", $user);
         } catch (\Exception $e) {

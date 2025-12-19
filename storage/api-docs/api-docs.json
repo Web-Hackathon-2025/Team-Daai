@@ -1,57 +1,129 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "PinkDreams VMS API",
-        "description": "Video Management System API for Camera Management, Streaming, Notifications, and Business Operations",
+        "title": "Karigar Service Marketplace API",
+        "description": "RESTful API for Karigar - A service marketplace connecting customers with skilled service providers (electricians, plumbers, carpenters, etc.)",
         "contact": {
-            "name": "API Support",
-            "email": "support@pinkdreams.store"
+            "name": "Karigar API Support",
+            "email": "support@karigar.com"
         },
         "version": "1.0.0"
     },
     "servers": [
         {
             "url": "http://my-default-host.com",
-            "description": "API Server"
+            "description": "Karigar API Server"
         }
     ],
     "paths": {
-        "/api/hello-world": {
-            "get": {
+        "/api/auth/register": {
+            "post": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Test endpoint",
-                "description": "Simple endpoint to test API connectivity",
-                "operationId": "7c85b2d6116ceb67f87da2465d32bff6",
+                "summary": "Register new user",
+                "description": "Register a new customer or service provider",
+                "operationId": "d764dd091cc4494ae0baf360b03319f3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "customer",
+                                            "service_provider"
+                                        ],
+                                        "example": "customer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
-                    "200": {
-                        "description": "Success",
+                    "201": {
+                        "description": "Registration successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Hello, World!"
+                                            "example": "User registered successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "role": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Validation error"
                     }
                 }
             }
         },
-        "/api/login": {
+        "/api/auth/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "User login",
                 "description": "Authenticate user and return JWT token",
-                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "operationId": "8dcb70df1020986038d098cc08d05dae",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -65,7 +137,7 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "admin@example.com"
+                                        "example": "john@example.com"
                                     },
                                     "password": {
                                         "type": "string",
@@ -85,25 +157,32 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "Success": {
+                                        "success": {
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "Status": {
-                                            "type": "integer",
-                                            "example": 200
-                                        },
-                                        "Message": {
+                                        "message": {
                                             "type": "string",
                                             "example": "Login successfully"
                                         },
-                                        "Data": {
+                                        "data": {
                                             "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "email": {
-                                                    "type": "string"
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "role": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 },
                                                 "token": {
                                                     "type": "string"
@@ -204,391 +283,54 @@
                 ]
             }
         },
-        "/api/cameras": {
+        "/api/dashboard": {
             "get": {
                 "tags": [
-                    "Cameras"
+                    "Dashboard"
                 ],
-                "summary": "Get all cameras with filters",
-                "description": "Retrieve paginated list of cameras with optional filters (status, protocol, server, location, streaming state, search)",
-                "operationId": "a276539e8556682bcbca79854ac5c34e",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Page number",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
+                "summary": "Get dashboard statistics",
+                "description": "Get dashboard stats based on user role (admin: platform stats, provider: earnings/requests, customer: bookings)",
+                "operationId": "1f966999bcf6f57a17040cace6bc5b77",
+                "responses": {
+                    "200": {
+                        "description": "Statistics retrieved successfully"
                     },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get user notifications",
+                "description": "Retrieve paginated list of notifications for authenticated user",
+                "operationId": "911565ad9aff9ba7eded3f189509e578",
+                "parameters": [
                     {
                         "name": "per_page",
                         "in": "query",
-                        "description": "Items per page",
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "example": 10
-                        }
-                    },
-                    {
-                        "name": "business_id",
-                        "in": "query",
-                        "description": "Filter by business ID (super-admin only)",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "description": "Filter by camera status",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "online",
-                                "offline",
-                                "unstable",
-                                "disabled"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "protocol",
-                        "in": "query",
-                        "description": "Filter by protocol",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "RTSP",
-                                "RTMP",
-                                "HTTP",
-                                "HTTPS"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "server",
-                        "in": "query",
-                        "description": "Filter by server name",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "location_id",
-                        "in": "query",
-                        "description": "Filter by location ID",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "is_streaming",
-                        "in": "query",
-                        "description": "Filter by streaming state",
-                        "required": false,
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search by camera name or manufacturer",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
+                            "default": 15
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cameras loaded successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Cameras loaded successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "data": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "business_id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "location_id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "manufacturer": {
-                                                                "type": "string"
-                                                            },
-                                                            "protocol": {
-                                                                "type": "string"
-                                                            },
-                                                            "status": {
-                                                                "type": "string"
-                                                            },
-                                                            "is_streaming": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "business": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            },
-                                                            "location": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer"
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Notifications retrieved successfully"
                     },
                     "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Cameras"
-                ],
-                "summary": "Create new camera",
-                "description": "Add a new camera to the system. Checks camera limits based on subscription package.",
-                "operationId": "34c20f9a7577b0b84f105ac2063d43e0",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "protocol"
-                                ],
-                                "properties": {
-                                    "business_id": {
-                                        "description": "Business ID (super-admin only)",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "location_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Front Gate Camera"
-                                    },
-                                    "manufacturer": {
-                                        "type": "string",
-                                        "example": "Hikvision"
-                                    },
-                                    "template": {
-                                        "type": "string",
-                                        "example": "DS-2CD2xxx"
-                                    },
-                                    "protocol": {
-                                        "type": "string",
-                                        "enum": [
-                                            "RTSP",
-                                            "RTMP",
-                                            "HTTP",
-                                            "HTTPS"
-                                        ],
-                                        "example": "RTSP"
-                                    },
-                                    "server": {
-                                        "type": "string",
-                                        "example": "vms-server-01"
-                                    },
-                                    "rtsp_url": {
-                                        "type": "string",
-                                        "example": "rtsp://192.168.1.100:554/stream1"
-                                    },
-                                    "rtsp_username": {
-                                        "type": "string",
-                                        "example": "admin"
-                                    },
-                                    "rtsp_password": {
-                                        "type": "string",
-                                        "example": "password123"
-                                    },
-                                    "rtsp_host": {
-                                        "type": "string",
-                                        "example": "192.168.1.100"
-                                    },
-                                    "rtsp_port": {
-                                        "type": "integer",
-                                        "example": 554
-                                    },
-                                    "rtsp_path": {
-                                        "type": "string",
-                                        "example": "/stream1"
-                                    },
-                                    "rtmp_url": {
-                                        "type": "string",
-                                        "example": "rtmp://server/live/stream"
-                                    },
-                                    "resolution": {
-                                        "type": "string",
-                                        "example": "1920x1080"
-                                    },
-                                    "camera_type": {
-                                        "type": "string",
-                                        "example": "Dome"
-                                    },
-                                    "analytical": {
-                                        "type": "boolean",
-                                        "example": false
-                                    },
-                                    "codec": {
-                                        "type": "string",
-                                        "example": "H.264"
-                                    },
-                                    "fps": {
-                                        "type": "integer",
-                                        "example": 25
-                                    },
-                                    "bitrate": {
-                                        "description": "Bitrate in Kbps",
-                                        "type": "integer",
-                                        "example": 4096
-                                    },
-                                    "storage_days": {
-                                        "description": "Retention period 1-365 days",
-                                        "type": "integer",
-                                        "example": 30
-                                    },
-                                    "pre_alarm_seconds": {
-                                        "description": "Pre-alarm buffer 0-30 seconds",
-                                        "type": "integer",
-                                        "example": 10
-                                    },
-                                    "address": {
-                                        "type": "string",
-                                        "example": "Main Entrance"
-                                    },
-                                    "latitude": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": -23.55052
-                                    },
-                                    "longitude": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": -46.633308
-                                    },
-                                    "comments": {
-                                        "type": "string",
-                                        "example": "24/7 monitoring required"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Camera created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera created successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "stream_key": {
-                                                    "description": "Auto-generated unique stream key",
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Camera limit exceeded for this business package"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    },
-                    "500": {
-                        "description": "Failed to create camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -598,77 +340,20 @@
                 ]
             }
         },
-        "/api/cameras/stats": {
+        "/api/notifications/unread-count": {
             "get": {
                 "tags": [
-                    "Cameras"
+                    "Notifications"
                 ],
-                "summary": "Get camera statistics",
-                "description": "Retrieve camera counts by status and streaming state",
-                "operationId": "49fadb93ff17552e1eded8e0afe5be4c",
-                "parameters": [
-                    {
-                        "name": "business_id",
-                        "in": "query",
-                        "description": "Filter by business ID (super-admin only)",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
+                "summary": "Get unread count",
+                "description": "Get count of unread notifications for authenticated user",
+                "operationId": "7caea6b85f9c3fe360aa3daa1f8daeb3",
                 "responses": {
                     "200": {
-                        "description": "Camera statistics retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera statistics retrieved"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "total": {
-                                                    "type": "integer",
-                                                    "example": 50
-                                                },
-                                                "online": {
-                                                    "type": "integer",
-                                                    "example": 45
-                                                },
-                                                "offline": {
-                                                    "type": "integer",
-                                                    "example": 3
-                                                },
-                                                "unstable": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "disabled": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "streaming": {
-                                                    "type": "integer",
-                                                    "example": 30
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Unread count retrieved"
                     },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -678,19 +363,18 @@
                 ]
             }
         },
-        "/api/cameras/{id}": {
+        "/api/notifications/{id}": {
             "get": {
                 "tags": [
-                    "Cameras"
+                    "Notifications"
                 ],
-                "summary": "Get single camera",
-                "description": "Retrieve detailed information about a specific camera including stream URL",
-                "operationId": "b4bc68f31a7577c661f505610ccc8a95",
+                "summary": "Get notification details",
+                "description": "Get a single notification (automatically marks as read)",
+                "operationId": "f2edf725f41dd6c9a9338a6a7b39d779",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Camera ID",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -699,278 +383,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Camera retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera retrieved successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "business_id": {
-                                                    "type": "integer"
-                                                },
-                                                "location_id": {
-                                                    "type": "integer"
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Front Gate Camera"
-                                                },
-                                                "manufacturer": {
-                                                    "type": "string",
-                                                    "example": "Hikvision"
-                                                },
-                                                "protocol": {
-                                                    "type": "string",
-                                                    "example": "RTSP"
-                                                },
-                                                "rtsp_url": {
-                                                    "type": "string"
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "example": "online"
-                                                },
-                                                "is_streaming": {
-                                                    "type": "boolean"
-                                                },
-                                                "full_stream_url": {
-                                                    "type": "string"
-                                                },
-                                                "resolution": {
-                                                    "type": "string",
-                                                    "example": "1920x1080"
-                                                },
-                                                "fps": {
-                                                    "type": "integer",
-                                                    "example": 25
-                                                },
-                                                "business": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "location": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "address": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Notification retrieved"
                     },
                     "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized access to this camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "Cameras"
-                ],
-                "summary": "Update camera",
-                "description": "Update camera configuration including RTSP/RTMP settings, location, status, and technical specs",
-                "operationId": "11a5587511f62e74ca1ed777d54d6738",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "protocol"
-                                ],
-                                "properties": {
-                                    "location_id": {
-                                        "type": "integer"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "manufacturer": {
-                                        "type": "string"
-                                    },
-                                    "template": {
-                                        "type": "string"
-                                    },
-                                    "protocol": {
-                                        "type": "string",
-                                        "enum": [
-                                            "RTSP",
-                                            "RTMP",
-                                            "HTTP",
-                                            "HTTPS"
-                                        ]
-                                    },
-                                    "server": {
-                                        "type": "string"
-                                    },
-                                    "rtsp_url": {
-                                        "type": "string"
-                                    },
-                                    "rtsp_username": {
-                                        "type": "string"
-                                    },
-                                    "rtsp_password": {
-                                        "type": "string"
-                                    },
-                                    "rtsp_host": {
-                                        "type": "string"
-                                    },
-                                    "rtsp_port": {
-                                        "type": "integer"
-                                    },
-                                    "rtsp_path": {
-                                        "type": "string"
-                                    },
-                                    "rtmp_url": {
-                                        "type": "string"
-                                    },
-                                    "resolution": {
-                                        "type": "string"
-                                    },
-                                    "camera_type": {
-                                        "type": "string"
-                                    },
-                                    "analytical": {
-                                        "type": "boolean"
-                                    },
-                                    "codec": {
-                                        "type": "string"
-                                    },
-                                    "fps": {
-                                        "type": "integer"
-                                    },
-                                    "bitrate": {
-                                        "type": "integer"
-                                    },
-                                    "storage_days": {
-                                        "type": "integer"
-                                    },
-                                    "pre_alarm_seconds": {
-                                        "type": "integer"
-                                    },
-                                    "address": {
-                                        "type": "string"
-                                    },
-                                    "latitude": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "longitude": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "online",
-                                            "offline",
-                                            "unstable",
-                                            "disabled"
-                                        ]
-                                    },
-                                    "comments": {
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Camera updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera updated successfully"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized to update this camera"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    },
-                    "500": {
-                        "description": "Failed to update camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
+                        "description": "Notification not found"
                     }
                 },
                 "security": [
@@ -981,16 +397,15 @@
             },
             "delete": {
                 "tags": [
-                    "Cameras"
+                    "Notifications"
                 ],
-                "summary": "Delete camera",
-                "description": "Soft delete a camera from the system",
-                "operationId": "8a37aca25a1ee245fcc4a3d404db96ae",
+                "summary": "Delete notification",
+                "description": "Delete a specific notification",
+                "operationId": "54c4eb5ec5dc0d1e2916cec2fced1056",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Camera ID",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -999,36 +414,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Camera deleted successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera deleted successfully"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Notification deleted"
                     },
                     "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized to delete this camera"
-                    },
-                    "500": {
-                        "description": "Failed to delete camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
+                        "description": "Notification not found"
                     }
                 },
                 "security": [
@@ -1038,114 +427,33 @@
                 ]
             }
         },
-        "/api/cameras/{id}/comments": {
-            "patch": {
+        "/api/notifications/mark-as-read": {
+            "post": {
                 "tags": [
-                    "Cameras"
+                    "Notifications"
                 ],
-                "summary": "Update camera comments",
-                "description": "Quick update of camera comments field only (for inline editing)",
-                "operationId": "b4f635dd2dd520af9b62416ade797361",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "comments": {
-                                        "type": "string",
-                                        "example": "Updated maintenance notes"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Comments updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Comments updated successfully"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized to update this camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/cameras/{id}/migrate": {
-            "patch": {
-                "tags": [
-                    "Cameras"
-                ],
-                "summary": "Migrate camera to different server",
-                "description": "Move camera processing to a different VMS server (super-admin or business-admin only)",
-                "operationId": "1c67d507fed6dce4c781d235b1cde323",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
+                "summary": "Mark notifications as read",
+                "description": "Mark specific notifications as read by their IDs",
+                "operationId": "c263561c19978a12d6dad8e73311f19f",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "server"
+                                    "notification_ids"
                                 ],
                                 "properties": {
-                                    "server": {
-                                        "description": "Target server name",
-                                        "type": "string",
-                                        "example": "vms-server-02"
+                                    "notification_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -1155,39 +463,10 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Camera migrated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Camera migrated successfully"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Notifications marked as read"
                     },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized to migrate camera"
-                    },
-                    "422": {
+                    "400": {
                         "description": "Validation error"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
                     }
                 },
                 "security": [
@@ -1197,44 +476,20 @@
                 ]
             }
         },
-        "/api/cameras/manufacturers": {
-            "get": {
+        "/api/notifications/mark-all-as-read": {
+            "post": {
                 "tags": [
-                    "Cameras"
+                    "Notifications"
                 ],
-                "summary": "Get camera manufacturers list",
-                "description": "Retrieve predefined list of camera manufacturers for dropdown selection",
-                "operationId": "993084515deb7935e911a7a5a72f6b4b",
+                "summary": "Mark all notifications as read",
+                "description": "Mark all unread notifications as read for authenticated user",
+                "operationId": "a72c021ffd50de02c44c68c5dfc04925",
                 "responses": {
                     "200": {
-                        "description": "Manufacturers loaded successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Manufacturers loaded successfully"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string",
-                                                "example": "Hikvision"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "All notifications marked as read"
                     },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -1305,30 +560,20 @@
                                                     "type": "string",
                                                     "example": "https://api.example.com/storage/profiles/user-1.jpg"
                                                 },
-                                                "business_id": {
-                                                    "type": "integer"
-                                                },
-                                                "location_id": {
-                                                    "type": "integer"
-                                                },
-                                                "business": {
+                                                "provider_profile": {
                                                     "properties": {
                                                         "id": {
                                                             "type": "integer"
                                                         },
-                                                        "name": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "location": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
+                                                        "category": {
+                                                            "type": "string",
+                                                            "example": "Plumber"
                                                         },
-                                                        "name": {
+                                                        "location": {
                                                             "type": "string"
+                                                        },
+                                                        "is_approved": {
+                                                            "type": "boolean"
                                                         }
                                                     },
                                                     "type": "object"
@@ -1628,401 +873,59 @@
                 ]
             }
         },
-        "/api/stream/{id}/start": {
-            "post": {
-                "tags": [
-                    "Streaming"
-                ],
-                "summary": "Start camera stream",
-                "description": "Start FFmpeg process to convert RTSP/RTMP to HLS format for web playback",
-                "operationId": "f5cdbd596156e42b0ff946f993922d06",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Stream started successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Stream started successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "camera_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "stream_key": {
-                                                    "type": "string",
-                                                    "example": "abc123def456"
-                                                },
-                                                "hls_url": {
-                                                    "type": "string",
-                                                    "example": "https://api.example.com/storage/streams/1/index.m3u8"
-                                                },
-                                                "is_streaming": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Camera is already streaming"
-                    },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized access to this camera"
-                    },
-                    "500": {
-                        "description": "Failed to start stream"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/stream/{id}/stop": {
-            "post": {
-                "tags": [
-                    "Streaming"
-                ],
-                "summary": "Stop camera stream",
-                "description": "Stop FFmpeg streaming process and cleanup HLS files",
-                "operationId": "7b8c716fd5c2fdcecd3df1caa04a395f",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Stream stopped successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Stream stopped successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "camera_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "is_streaming": {
-                                                    "type": "boolean",
-                                                    "example": false
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Camera is not streaming"
-                    },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized access to this camera"
-                    },
-                    "500": {
-                        "description": "Failed to stop stream"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/stream/{id}/status": {
+        "/api/providers": {
             "get": {
                 "tags": [
-                    "Streaming"
+                    "Service Providers"
                 ],
-                "summary": "Get stream status",
-                "description": "Check if camera stream is active and retrieve stream details including process status",
-                "operationId": "68269be021545dda8ad219774e2e0ef0",
+                "summary": "Get all service providers",
+                "description": "Retrieve list of service providers with optional filters (category, location, search)",
+                "operationId": "386f3ddc2b7b26effa6a559287ccbe4c",
                 "parameters": [
                     {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Stream status retrieved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Stream status retrieved"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "camera_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "camera_name": {
-                                                    "type": "string",
-                                                    "example": "Front Gate Camera"
-                                                },
-                                                "is_streaming": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "stream_pid": {
-                                                    "description": "FFmpeg process ID",
-                                                    "type": "integer",
-                                                    "example": 12345
-                                                },
-                                                "process_running": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "hls_url": {
-                                                    "type": "string"
-                                                },
-                                                "stream_key": {
-                                                    "type": "string"
-                                                },
-                                                "last_seen_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Camera not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized access to this camera"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/stream/{id}/serve/{file}": {
-            "get": {
-                "tags": [
-                    "Streaming"
-                ],
-                "summary": "Serve HLS files",
-                "description": "Serve HLS playlist (.m3u8) or video segments (.ts) for video playback",
-                "operationId": "93d2ff7b72f9ac4ecb99c25f49f696f1",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Camera ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "file",
-                        "in": "path",
-                        "description": "Filename (index.m3u8 or segment.ts)",
-                        "required": true,
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filter by service category",
+                        "required": false,
                         "schema": {
                             "type": "string"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "HLS file content",
-                        "content": {
-                            "application/vnd.apple.mpegurl": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        }
                     },
-                    "404": {
-                        "description": "Camera not found or Stream file not found"
-                    },
-                    "403": {
-                        "description": "Unauthorized access to this camera stream"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
                     {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/stream/active": {
-            "get": {
-                "tags": [
-                    "Streaming"
-                ],
-                "summary": "Get all streaming cameras",
-                "description": "Retrieve list of all cameras currently streaming",
-                "operationId": "df641dfd743b99d9995e51f486fc9bc9",
-                "parameters": [
-                    {
-                        "name": "business_id",
+                        "name": "location",
                         "in": "query",
-                        "description": "Filter by business ID (super-admin only)",
+                        "description": "Filter by location",
                         "required": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name or service",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Streaming cameras retrieved",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Streaming cameras retrieved"
-                                        },
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "name": {
-                                                        "type": "string"
-                                                    },
-                                                    "is_streaming": {
-                                                        "type": "boolean",
-                                                        "example": true
-                                                    },
-                                                    "hls_url": {
-                                                        "type": "string"
-                                                    },
-                                                    "business": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    },
-                                                    "location": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Service providers retrieved successfully"
                     },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -2032,19 +935,19 @@
                 ]
             }
         },
-        "/api/stream/{id}/restart": {
-            "post": {
+        "/api/providers/{id}": {
+            "get": {
                 "tags": [
-                    "Streaming"
+                    "Service Providers"
                 ],
-                "summary": "Restart camera stream",
-                "description": "Stop and restart FFmpeg streaming process (useful for recovering from errors)",
-                "operationId": "f82ea60b5014b67725203f30f02efbb5",
+                "summary": "Get provider details",
+                "description": "Get detailed information about a specific service provider including services and reviews",
+                "operationId": "35b1e0194318551d5d5794e6f71ff577",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Camera ID",
+                        "description": "Provider ID",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -2053,52 +956,724 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Stream restarted successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Stream restarted successfully"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "camera_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "is_streaming": {
-                                                    "type": "boolean",
-                                                    "example": true
-                                                },
-                                                "hls_url": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Provider details retrieved successfully"
                     },
                     "404": {
-                        "description": "Camera not found"
+                        "description": "Provider not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/providers/me": {
+            "get": {
+                "tags": [
+                    "Service Providers"
+                ],
+                "summary": "Get own provider profile",
+                "description": "Service provider can view their own profile and services",
+                "operationId": "9f5c96056dda28ed2bab32a79245c8b2",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully"
                     },
                     "403": {
-                        "description": "Unauthorized access to this camera"
+                        "description": "Access denied - not a service provider"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Service Providers"
+                ],
+                "summary": "Update own provider profile",
+                "description": "Service provider can update their profile information",
+                "operationId": "45031d0eec6ca0228cd7e7c1afed4473",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "Electrician"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "New York, NY"
+                                    },
+                                    "availability": {
+                                        "type": "string",
+                                        "example": "Mon-Fri 9AM-5PM"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
                     },
-                    "500": {
-                        "description": "Failed to restart stream"
+                    "403": {
+                        "description": "Access denied"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests": {
+            "get": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Get all service requests",
+                "description": "Retrieve service requests filtered by user role. Customers see their requests, providers see requests for them.",
+                "operationId": "d8762545247b9ed012f00e992cbfa665",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "requested",
+                                "confirmed",
+                                "completed",
+                                "cancelled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Requests retrieved successfully"
                     },
                     "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Create new service request",
+                "description": "Customer creates a booking request for a service provider",
+                "operationId": "b78212afe2734cba4b079913cc3d3855",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "provider_id",
+                                    "service_id",
+                                    "requested_date",
+                                    "requested_time",
+                                    "address"
+                                ],
+                                "properties": {
+                                    "provider_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "service_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "requested_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-25"
+                                    },
+                                    "requested_time": {
+                                        "type": "string",
+                                        "example": "10:00 AM"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Need electrical wiring repair"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St, New York, NY"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Service request created successfully"
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}": {
+            "get": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Get request details",
+                "description": "Get detailed information about a specific service request",
+                "operationId": "6c4f2a70cb6d6ec470c9eff7499c9bce",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request details retrieved"
+                    },
+                    "403": {
                         "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Request not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}/accept": {
+            "put": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Accept service request",
+                "description": "Service provider accepts a requested booking",
+                "operationId": "701b8c23be19ff43b3e0a55c675b036e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request accepted"
+                    },
+                    "400": {
+                        "description": "Invalid status transition"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}/reject": {
+            "put": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Reject service request",
+                "description": "Service provider rejects a requested booking",
+                "operationId": "e592214df4f818cb242463ca709da3f5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Not available on requested date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request rejected"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}/reschedule": {
+            "put": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Reschedule service request",
+                "description": "Service provider reschedules a booking to a new date/time",
+                "operationId": "ce82aeb78d7a120a8aceef832f3ea541",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "new_date",
+                                    "new_time"
+                                ],
+                                "properties": {
+                                    "new_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-26"
+                                    },
+                                    "new_time": {
+                                        "type": "string",
+                                        "example": "2:00 PM"
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Previous booking conflict"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request rescheduled"
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}/complete": {
+            "put": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Mark request as completed",
+                "description": "Service provider marks a confirmed request as completed",
+                "operationId": "677f5867b91ad9425ee92282ad591f69",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request marked as completed"
+                    },
+                    "400": {
+                        "description": "Invalid status"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/requests/{id}/cancel": {
+            "put": {
+                "tags": [
+                    "Service Requests"
+                ],
+                "summary": "Cancel service request",
+                "description": "Customer or provider can cancel a requested/confirmed booking",
+                "operationId": "91fad068c306105d9f231208b7f3218d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request cancelled"
+                    },
+                    "400": {
+                        "description": "Invalid status"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews": {
+            "post": {
+                "tags": [
+                    "Reviews & Ratings"
+                ],
+                "summary": "Submit a review",
+                "description": "Customer submits a review and rating for a completed service",
+                "operationId": "154c71f5f72b459d998f5ea451bd4c96",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "request_id",
+                                    "provider_id",
+                                    "rating"
+                                ],
+                                "properties": {
+                                    "request_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "provider_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "rating": {
+                                        "type": "integer",
+                                        "maximum": 5,
+                                        "minimum": 1,
+                                        "example": 5
+                                    },
+                                    "comment": {
+                                        "type": "string",
+                                        "example": "Excellent service!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Review submitted successfully"
+                    },
+                    "400": {
+                        "description": "Validation error or review already exists"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reviews/provider/{provider_id}": {
+            "get": {
+                "tags": [
+                    "Reviews & Ratings"
+                ],
+                "summary": "Get provider reviews",
+                "description": "Get all reviews and ratings for a specific service provider",
+                "operationId": "6182b1e6f42b79d6bf842b79c7f9d48a",
+                "parameters": [
+                    {
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reviews retrieved successfully"
+                    },
+                    "404": {
+                        "description": "Provider not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/roles": {
+            "get": {
+                "tags": [
+                    "Roles & Permissions"
+                ],
+                "summary": "Get all roles",
+                "description": "List all roles with their associated permissions",
+                "operationId": "77e3636d8592997ce9d6d27b50857a69",
+                "responses": {
+                    "200": {
+                        "description": "Roles retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Access denied"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roles & Permissions"
+                ],
+                "summary": "Create new role",
+                "description": "Admin creates a new role with optional permissions",
+                "operationId": "4a563842fbfcad237f63da43065fca3d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "manager"
+                                    },
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "view_users",
+                                            "edit_users"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Role created successfully"
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin Panel"
+                ],
+                "summary": "Get all users",
+                "description": "Admin can view all users with optional filters",
+                "operationId": "7682ed8f32d8216884bcdfd052b767cd",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully"
+                    },
+                    "403": {
+                        "description": "Access denied - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Panel"
+                ],
+                "summary": "Get user details",
+                "description": "Admin can view detailed information about a specific user",
+                "operationId": "18bf2b0d8a78aa1abd47d3241e8b5c98",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details retrieved"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/users/{id}/approve": {
+            "put": {
+                "tags": [
+                    "Admin Panel"
+                ],
+                "summary": "Approve service provider",
+                "description": "Admin approves a service provider profile",
+                "operationId": "4f55c14e77c8cb9d0315a35d0fbddff0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Provider approved"
+                    },
+                    "400": {
+                        "description": "Invalid user type"
                     }
                 },
                 "security": [
@@ -2122,19 +1697,39 @@
     "tags": [
         {
             "name": "Authentication",
-            "description": "Login, Logout, Token Refresh"
+            "description": "User registration, login, logout, and token management"
         },
         {
-            "name": "Cameras",
-            "description": "Camera CRUD operations and management"
+            "name": "Service Providers",
+            "description": "Browse and manage service providers (Karigar profiles)"
         },
         {
-            "name": "Streaming",
-            "description": "Camera stream management (Start, Stop, Status)"
+            "name": "Service Requests",
+            "description": "Create, manage, and track service booking requests"
+        },
+        {
+            "name": "Reviews & Ratings",
+            "description": "Customer reviews and ratings for service providers"
+        },
+        {
+            "name": "Notifications",
+            "description": "User notifications for requests, updates, and system messages"
         },
         {
             "name": "Profile",
-            "description": "User profile management"
+            "description": "User profile management and settings"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard statistics and analytics for all user roles"
+        },
+        {
+            "name": "Admin Panel",
+            "description": "Administrative operations for system management"
+        },
+        {
+            "name": "Roles & Permissions",
+            "description": "Role-based access control management"
         }
     ]
 }
