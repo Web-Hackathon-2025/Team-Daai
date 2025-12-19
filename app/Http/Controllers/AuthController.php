@@ -32,7 +32,7 @@ class AuthController extends Controller
         }
 
         $user = auth('api')->user()->load(['business','roles','roles.permissions']);
-        $user->roles->each->makeHidden('pivot'); 
+        $user->roles->each->makeHidden('pivot');
 
         if (
             !$user->business &&
