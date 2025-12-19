@@ -45,8 +45,8 @@ const ProviderDetail = () => {
   const [selectedService, setSelectedService] = useState<number | null>(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestData, setRequestData] = useState({
-    requested_date: '',
-    requested_time: '',
+    request_date: '',
+    request_time: '',
     description: '',
     address: '',
   });
@@ -61,10 +61,10 @@ const ProviderDetail = () => {
 
   // Get available time slots for selected date
   const availableTimeSlots = useMemo(() => {
-    if (!requestData.requested_date || !availabilityInfo) return [];
-    const selectedDate = new Date(requestData.requested_date);
+    if (!requestData.request_date || !availabilityInfo) return [];
+    const selectedDate = new Date(requestData.request_date);
     return getAvailableTimeSlots(selectedDate, availabilityInfo, 30);
-  }, [requestData.requested_date, availabilityInfo]);
+  }, [requestData.request_date, availabilityInfo]);
 
   const loadProvider = async () => {
     if (!id) return;
@@ -96,8 +96,8 @@ const ProviderDetail = () => {
 
     // Validate availability
     const validation = validateBookingTime(
-      requestData.requested_date,
-      requestData.requested_time,
+      requestData.request_date,
+      requestData.request_time,
       availabilityInfo
     );
 
@@ -112,16 +112,16 @@ const ProviderDetail = () => {
       await createRequest({
         provider_id: parseInt(id),
         service_id: selectedService,
-        requested_date: requestData.requested_date,
-        requested_time: requestData.requested_time,
+        request_date: requestData.request_date,
+        request_time: requestData.request_time,
         description: requestData.description,
-        address: requestData.address,
+        location: requestData.address,
       });
       alert('Service request submitted successfully!');
       setShowRequestForm(false);
       setRequestData({
-        requested_date: '',
-        requested_time: '',
+        request_date: '',
+        request_time: '',
         description: '',
         address: '',
       });
@@ -134,7 +134,7 @@ const ProviderDetail = () => {
 
   // Handle date change - validate and reset time if needed
   const handleDateChange = (date: string) => {
-    setRequestData({ ...requestData, requested_date: date, requested_time: '' });
+    setRequestData({ ...requestData, request_date: date, request_time: '' });
     setBookingError('');
   };
 
@@ -268,7 +268,7 @@ const ProviderDetail = () => {
                     </label>
                     <input
                       type="date"
-                      value={requestData.requested_date}
+                      value={requestData.request_date}
                       onChange={(e) => handleDateChange(e.target.value)}
                       required
                       min={new Date().toISOString().split('T')[0]}
@@ -287,9 +287,9 @@ const ProviderDetail = () => {
                     </label>
                     {availableTimeSlots.length > 0 ? (
                       <select
-                        value={requestData.requested_time}
+                        value={requestData.request_time}
                         onChange={(e) => {
-                          setRequestData({ ...requestData, requested_time: e.target.value });
+                          setRequestData({ ...requestData, request_time: e.target.value });
                           setBookingError('');
                         }}
                         required
@@ -308,7 +308,7 @@ const ProviderDetail = () => {
                           );
                         })}
                       </select>
-                    ) : requestData.requested_date ? (
+                    ) : requestData.request_date ? (
                       <div className="w-full px-4 py-2 border border-red-300 rounded-lg bg-red-50 text-red-700 text-sm">
                         No available times for this date
                       </div>

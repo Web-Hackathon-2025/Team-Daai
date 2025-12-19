@@ -1,22 +1,23 @@
 import axios from 'axios';
-import { mockProviders, mockRequests, mockUser, delay } from '../utils/mockData';
+import { mockProviders, mockRequests, delay } from '../utils/mockData';
 
 // Enable mock mode for UI testing (set to false when backend is ready)
 const USE_MOCK_DATA = true;
 
 // API Base URL - update in .env file
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/CosmoCon/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://thinklikeacoder.com/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
 // Add token to requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -29,7 +30,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
@@ -50,21 +51,31 @@ export const login = async (email: string, password: string) => {
       role = 'admin';
     }
     
+    const nameParts = email.split('@')[0].replace(/[._]/g, ' ').split(' ');
     const user = {
-      ...mockUser,
-      email,
+      id: 1,
+      first_name: nameParts[0] || 'User',
+      last_name: nameParts.slice(1).join(' ') || '',
       name: email.split('@')[0].replace(/[._]/g, ' '),
+      email,
       role,
     };
-    const token = 'mock_token_' + Date.now();
+    const access_token = 'mock_token_' + Date.now();
     return {
       data: {
-        success: true,
-        data: { user, token },
+        status: 'success',
+        message: 'Login successful',
+        data: { 
+          user, 
+          access_token,
+          token_type: 'bearer',
+          expires_in: 3600
+        },
       },
     };
   }
-  return api.post('/auth/login', { email, password });
+  // API expects 'login' field which can be email, username, or phone
+  return api.post('/auth/login', { login: email, password });
 };
 
 export const register = async (userData: {
@@ -72,19 +83,46 @@ export const register = async (userData: {
   email: string;
   password: string;
   role: 'customer' | 'service_provider';
+  phone?: string;
 }) => {
   if (USE_MOCK_DATA) {
     await delay(500);
-    const user = { ...mockUser, ...userData, id: Date.now() };
-    const token = 'mock_token_' + Date.now();
+    const nameParts = userData.name.split(' ');
+    const user = { 
+      id: Date.now(),
+      first_name: nameParts[0] || userData.name,
+      last_name: nameParts.slice(1).join(' ') || '',
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone || '+923001234567',
+      role: userData.role,
+    };
+    const access_token = 'mock_token_' + Date.now();
     return {
       data: {
-        success: true,
-        data: { user, token },
+        status: 'success',
+        message: 'User registered successfully',
+        data: { 
+          user, 
+          access_token,
+          token_type: 'bearer',
+          expires_in: 3600
+        },
       },
     };
   }
-  return api.post('/auth/register', userData);
+  // API expects first_name, last_name, phone, password_confirmation
+  const nameParts = userData.name.split(' ');
+  const registerData = {
+    first_name: nameParts[0] || userData.name,
+    last_name: nameParts.slice(1).join(' ') || '',
+    email: userData.email,
+    password: userData.password,
+    password_confirmation: userData.password,
+    phone: userData.phone || '+923001234567',
+    role: userData.role,
+  };
+  return api.post('/auth/register', registerData);
 };
 
 export const logout = () => {
@@ -205,27 +243,30 @@ export const updateProviderProfile = async (data: {
 export const createRequest = async (requestData: {
   provider_id: number;
   service_id: number;
-  requested_date: string;
-  requested_time: string;
+  request_date: string;
+  request_time: string;
   description?: string;
-  address: string;
+  location: string;
+  estimated_hours?: number;
 }) => {
   if (USE_MOCK_DATA) {
     await delay(500);
-    const provider = mockProviders.find((p) => p.id === requestData.provider_id);
-    const service = provider?.services.find((s) => s.id === requestData.service_id);
     return {
       data: {
-        success: true,
+        status: 'success',
+        message: 'Service request created successfully',
         data: {
-          request: {
-            id: Date.now(),
-            ...requestData,
-            provider_name: provider?.name || '',
-            service_name: service?.name || '',
-            status: 'requested',
-            created_at: new Date().toISOString(),
-          },
+          id: Date.now(),
+          customer_id: 1,
+          provider_id: requestData.provider_id,
+          service_id: requestData.service_id,
+          status: 'requested',
+          request_date: requestData.request_date,
+          request_time: requestData.request_time,
+          location: requestData.location,
+          description: requestData.description || '',
+          estimated_hours: requestData.estimated_hours || null,
+          created_at: new Date().toISOString(),
         },
       },
     };
@@ -297,7 +338,7 @@ export const cancelRequest = async (id: number) => {
 
 // ==================== REVIEW APIs ====================
 export const createReview = async (reviewData: {
-  request_id: number;
+  service_request_id: number;
   provider_id: number;
   rating: number;
   comment: string;
@@ -306,13 +347,16 @@ export const createReview = async (reviewData: {
     await delay(500);
     return {
       data: {
-        success: true,
+        status: 'success',
+        message: 'Review submitted successfully',
         data: {
-          review: {
-            id: Date.now(),
-            ...reviewData,
-            created_at: new Date().toISOString(),
-          },
+          id: Date.now(),
+          service_request_id: reviewData.service_request_id,
+          customer_id: 1,
+          provider_id: reviewData.provider_id,
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          created_at: new Date().toISOString(),
         },
       },
     };

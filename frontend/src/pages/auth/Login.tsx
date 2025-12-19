@@ -18,8 +18,18 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/');
+      const response = await login(email, password) as { data: { data: { user: { role: string } } } };
+      const user = response.data.data.user;
+      // Navigate based on user role
+      if (user.role === 'customer') {
+        navigate('/customer');
+      } else if (user.role === 'service_provider') {
+        navigate('/provider');
+      } else if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/customer');
+      }
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Login failed. Please check your credentials.'));
     } finally {
@@ -30,6 +40,27 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Home
+          </Link>
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Karigar</h1>
           <p className="text-gray-600">Sign in to your account</p>

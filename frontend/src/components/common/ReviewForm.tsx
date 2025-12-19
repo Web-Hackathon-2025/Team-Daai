@@ -28,7 +28,7 @@ const ReviewForm = ({ requestId, providerId, onSuccess, onCancel }: ReviewFormPr
 
     try {
       await createReview({
-        request_id: requestId,
+        service_request_id: requestId,
         provider_id: providerId,
         rating,
         comment: comment.trim() || 'No comment',
