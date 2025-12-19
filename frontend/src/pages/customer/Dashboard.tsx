@@ -34,10 +34,38 @@ const Dashboard = () => {
     setError('');
     try {
       const response = await getProviders(filters);
-      setProviders(response.data.data.providers || []);
+      // API returns paginated structure: response.data.data.data (array of providers)
+      const providersData = response.data?.data?.data || response.data?.data?.providers || [];
+      
+      // Map API response to our Provider interface
+      const mappedProviders: Provider[] = providersData.map((p: {
+        id: number;
+        user?: { name?: string; first_name?: string; last_name?: string; email?: string; phone?: string };
+        name?: string;
+        email?: string;
+        phone?: string;
+        category?: string;
+        location?: string;
+        average_rating?: number;
+        rating?: number;
+        total_reviews?: number;
+        services?: Array<{ id: number; name: string; price: number; description?: string }>;
+      }) => ({
+        id: p.id,
+        name: p.user?.name || p.name || `${p.user?.first_name || ''} ${p.user?.last_name || ''}`.trim() || 'Unknown',
+        email: p.user?.email || p.email || '',
+        phone: p.phone || p.user?.phone || '',
+        category: p.category || '',
+        location: p.location || '',
+        rating: p.average_rating || p.rating || 0,
+        total_reviews: p.total_reviews || 0,
+        services: p.services || [],
+      }));
+      
+      setProviders(mappedProviders);
     } catch (err: unknown) {
       setError('Failed to load service providers');
-      console.error(err);
+      console.error('Provider loading error:', err);
       setProviders([]);
     } finally {
       setLoading(false);

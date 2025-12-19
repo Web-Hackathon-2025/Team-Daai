@@ -60,7 +60,15 @@ const Profile = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateProviderProfile(formData);
+      // Convert services array to description text for API
+      const description = formData.services
+        .map((s) => `${s.name} - PKR ${s.price}${s.description ? `: ${s.description}` : ''}`)
+        .join('\n');
+      
+      await updateProviderProfile({
+        ...formData,
+        description,
+      });
       alert('Profile updated successfully!');
       navigate('/provider');
     } catch (err: unknown) {

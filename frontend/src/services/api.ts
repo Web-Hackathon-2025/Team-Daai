@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mockProviders, mockRequests, delay } from '../utils/mockData';
 
 // Enable mock mode for UI testing (set to false when backend is ready)
-const USE_MOCK_DATA = false;
+const USE_MOCK_DATA = true;
 
 // API Base URL - update in .env file
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://thinklikeacoder.com/api';
@@ -242,6 +242,7 @@ export const updateProviderProfile = async (data: {
   location?: string;
   availability?: string;
   services?: Array<{ name: string; price: number; description?: string }>;
+  description?: string;
 }) => {
   if (USE_MOCK_DATA) {
     await delay(500);
@@ -252,7 +253,33 @@ export const updateProviderProfile = async (data: {
       },
     };
   }
-  return api.put('/providers/me', data);
+  
+  // API expects: category, location, availability, phone, description
+  // Don't send 'name' or 'services' array as they're not in the API spec
+  const apiData: {
+    category?: string;
+    location?: string;
+    availability?: string;
+    phone?: string;
+    description?: string;
+  } = {};
+  
+  if (data.category) apiData.category = data.category;
+  if (data.location) apiData.location = data.location;
+  if (data.availability) apiData.availability = data.availability;
+  if (data.phone) apiData.phone = data.phone;
+  
+  // Combine services into description if provided, or use description if given
+  if (data.description) {
+    apiData.description = data.description;
+  } else if (data.services && data.services.length > 0) {
+    // Convert services array to description text
+    apiData.description = data.services
+      .map((s) => `${s.name} - PKR ${s.price}${s.description ? `: ${s.description}` : ''}`)
+      .join('\n');
+  }
+  
+  return api.put('/providers/me', apiData);
 };
 
 // ==================== REQUEST APIs ====================
