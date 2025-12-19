@@ -70,23 +70,21 @@ class CreateSuperAdmin extends Command
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
-            'business_id' => null,
-            'location_id' => null,
         ]);
 
-        // Assign Super Admin role
-        $user->assignRole('Super Admin');
+        // Assign admin role
+        $user->assignRole('admin');
 
         $this->info('');
-        $this->info('✓ Super Admin created successfully!');
+        $this->info('✓ Admin user created successfully!');
         $this->info('');
         $this->table(
             ['Field', 'Value'],
             [
                 ['Name', $user->name],
                 ['Email', $user->email],
-                ['Role', 'Super Admin'],
-                ['Permissions', 'All permissions granted'],
+                ['Role', 'admin'],
+                ['Permissions', 'All admin permissions granted'],
             ]
         );
 
@@ -97,22 +95,21 @@ class CreateSuperAdmin extends Command
     }
 
     /**
-     * Ensure Super Admin role exists with all permissions
+     * Ensure admin role exists with all permissions
      */
     private function ensureSuperAdminRole()
     {
-        // Check if Super Admin role exists
-        $superAdmin = Role::where('name', 'Super Admin')
+        // Check if admin role exists
+        $superAdmin = Role::where('name', 'admin')
             ->where('guard_name', 'api')
             ->first();
 
         if (!$superAdmin) {
-            $this->warn('Super Admin role does not exist. Creating it now...');
+            $this->warn('admin role does not exist. Creating it now...');
 
             $superAdmin = Role::create([
-                'name' => 'Super Admin',
-                'guard_name' => 'api',
-                'business_id' => null
+                'name' => 'admin',
+                'guard_name' => 'api'
             ]);
 
             // Get all permissions

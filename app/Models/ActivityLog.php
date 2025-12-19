@@ -38,14 +38,6 @@ class ActivityLog extends Model
     }
 
     /**
-     * Get the business context
-     */
-    public function business()
-    {
-        return $this->belongsTo(Business::class);
-    }
-
-    /**
      * Get the associated model (polymorphic relationship)
      */
     public function model()

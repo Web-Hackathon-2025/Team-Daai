@@ -40,9 +40,9 @@ class ActivityLogController extends Controller
 
             $user = auth()->user();
 
-            // Business isolation - Super Admins see all, Business Admins see only their business
-            if (!$user->hasRole('Super Admin')) {
-                $query->forBusiness($user->business_id);
+            // Only admins can view all logs, others see only their own
+            if (!$user->hasRole('admin')) {
+                $query->where('user_id', $user->id);
             }
 
             // Apply search
@@ -90,8 +90,8 @@ class ActivityLogController extends Controller
 
             $user = auth()->user();
 
-            // Business isolation check
-            if (!$user->hasRole('Super Admin') && $log->business_id !== $user->business_id) {
+            // Permission check
+            if (!$user->hasRole('admin') && $log->user_id !== $user->id) {
                 return $this->error(ResponseMessage::UNAUTHORIZED, 403);
             }
 
@@ -126,9 +126,9 @@ class ActivityLogController extends Controller
 
             $user = auth()->user();
 
-            // Business isolation
-            if (!$user->hasRole('Super Admin')) {
-                $query->forBusiness($user->business_id);
+            // Only admins can export all logs
+            if (!$user->hasRole('admin')) {
+                $query->where('user_id', $user->id);
             }
 
             // Apply same filters as index
@@ -213,15 +213,15 @@ class ActivityLogController extends Controller
             $user = auth()->user();
             $query = ActivityLog::query();
 
-            // Business isolation
-            if (!$user->hasRole('Super Admin')) {
-                $query->forBusiness($user->business_id);
+            // Filter by user if not admin
+            if (!$user->hasRole('admin')) {
+                $query->where('user_id', $user->id);
             }
 
             $categories = $query->distinct()->pluck('category')->filter()->sort()->values();
             $actions = ActivityLog::query()
-                ->when(!$user->hasRole('Super Admin'), function ($q) use ($user) {
-                    $q->forBusiness($user->business_id);
+                ->when(!$user->hasRole('admin'), function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
                 })
                 ->distinct()
                 ->pluck('action')
@@ -250,8 +250,8 @@ class ActivityLogController extends Controller
      */
     public function cleanup(Request $request)
     {
-        // Only Super Admins can cleanup logs
-        if (!auth()->user()->hasRole('Super Admin')) {
+        // Only admins can cleanup logs
+        if (!auth()->user()->hasRole('admin')) {
             return $this->error(ResponseMessage::UNAUTHORIZED, 403);
         }
 

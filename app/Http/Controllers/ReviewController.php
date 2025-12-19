@@ -16,8 +16,25 @@ class ReviewController extends Controller
     use ResponseAPI;
 
     /**
-     * Submit a review after service completion
-     * POST /api/reviews
+     * @OA\Post(
+     *     path="/api/reviews",
+     *     tags={"Reviews & Ratings"},
+     *     summary="Submit a review",
+     *     description="Customer submits a review and rating for a completed service",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"request_id", "provider_id", "rating"},
+     *             @OA\Property(property="request_id", type="integer", example=1),
+     *             @OA\Property(property="provider_id", type="integer", example=2),
+     *             @OA\Property(property="rating", type="integer", minimum=1, maximum=5, example=5),
+     *             @OA\Property(property="comment", type="string", example="Excellent service!")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Review submitted successfully"),
+     *     @OA\Response(response=400, description="Validation error or review already exists")
+     * )
      */
     public function store(Request $request)
     {
@@ -89,8 +106,16 @@ class ReviewController extends Controller
     }
 
     /**
-     * Get all reviews for a specific provider
-     * GET /api/reviews/provider/{provider_id}
+     * @OA\Get(
+     *     path="/api/reviews/provider/{provider_id}",
+     *     tags={"Reviews & Ratings"},
+     *     summary="Get provider reviews",
+     *     description="Get all reviews and ratings for a specific service provider",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="provider_id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Reviews retrieved successfully"),
+     *     @OA\Response(response=404, description="Provider not found")
+     * )
      */
     public function getProviderReviews($provider_id)
     {
