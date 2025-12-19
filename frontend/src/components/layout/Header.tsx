@@ -53,6 +53,14 @@ const Header = () => {
                     </Link>
                   </>
                 )}
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <span className="text-gray-600 text-sm">Hello, {user.name}</span>
                 <button
                   onClick={handleLogout}

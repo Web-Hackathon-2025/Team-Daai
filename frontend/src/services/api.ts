@@ -339,18 +339,96 @@ export const getProviderReviews = async (providerId: number) => {
 };
 
 // ==================== ADMIN APIs (Optional) ====================
-export const getAdminUsers = () => api.get('/admin/users');
+export const getAdminUsers = async () => {
+  if (USE_MOCK_DATA) {
+    await delay(300);
+    return {
+      data: {
+        success: true,
+        data: {
+          users: [
+            {
+              id: 1,
+              name: 'John Customer',
+              email: 'john@example.com',
+              role: 'customer',
+              status: 'active',
+              created_at: '2024-01-10T10:00:00Z',
+            },
+            {
+              id: 2,
+              name: 'ABC Plumbing',
+              email: 'abc@example.com',
+              role: 'service_provider',
+              status: 'pending',
+              created_at: '2024-01-12T14:00:00Z',
+            },
+            {
+              id: 3,
+              name: 'Quick Electric',
+              email: 'quick@example.com',
+              role: 'service_provider',
+              status: 'active',
+              created_at: '2024-01-08T09:00:00Z',
+            },
+            {
+              id: 4,
+              name: 'Jane Doe',
+              email: 'jane@example.com',
+              role: 'customer',
+              status: 'active',
+              created_at: '2024-01-11T11:00:00Z',
+            },
+          ],
+        },
+      },
+    };
+  }
+  return api.get('/admin/users');
+};
 
-export const approveProvider = (userId: number) =>
-  api.put(`/admin/users/${userId}/approve`);
+export const approveProvider = async (userId: number) => {
+  if (USE_MOCK_DATA) {
+    await delay(300);
+    return { data: { success: true, data: { message: 'Provider approved' } } };
+  }
+  return api.put(`/admin/users/${userId}/approve`);
+};
 
-export const suspendUser = (userId: number) =>
-  api.put(`/admin/users/${userId}/suspend`);
+export const suspendUser = async (userId: number) => {
+  if (USE_MOCK_DATA) {
+    await delay(300);
+    return { data: { success: true, data: { message: 'User suspended' } } };
+  }
+  return api.put(`/admin/users/${userId}/suspend`);
+};
 
-export const deleteUser = (userId: number) =>
-  api.delete(`/admin/users/${userId}`);
+export const deleteUser = async (userId: number) => {
+  if (USE_MOCK_DATA) {
+    await delay(300);
+    return { data: { success: true, data: { message: 'User deleted' } } };
+  }
+  return api.delete(`/admin/users/${userId}`);
+};
 
-export const getAdminStats = () => api.get('/admin/stats');
+export const getAdminStats = async () => {
+  if (USE_MOCK_DATA) {
+    await delay(300);
+    return {
+      data: {
+        success: true,
+        data: {
+          total_users: 150,
+          total_providers: 50,
+          total_requests: 300,
+          completed_requests: 250,
+          pending_requests: 50,
+        },
+      },
+    };
+  }
+  return api.get('/admin/stats');
+};
 
 export default api;
 

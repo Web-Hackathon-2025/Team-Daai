@@ -17,7 +17,11 @@ To test different user roles, use these email patterns when logging in:
 ### Admin Role
 - Email: `admin@test.com`
 - Password: any password
-- Access: Admin dashboard (if implemented)
+- Access: 
+  - `/admin` - Admin Dashboard (view platform statistics)
+  - `/admin/users` - Manage users (approve providers, suspend/delete users)
+  - `/admin/services` - Monitor service listings
+  - `/admin/reviews` - Moderate reviews and ratings
 
 ## Examples
 

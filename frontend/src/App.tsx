@@ -9,6 +9,10 @@ import ProviderDetail from './pages/customer/ProviderDetail';
 import MyRequests from './pages/customer/MyRequests';
 import ProviderDashboard from './pages/provider/Dashboard';
 import ProviderProfile from './pages/provider/Profile';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminServices from './pages/admin/Services';
+import AdminReviews from './pages/admin/Reviews';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -71,12 +75,36 @@ function AppRoutes() {
         }
       />
 
-      {/* Admin Routes (Optional) */}
+      {/* Admin Routes */}
       <Route
         path="/admin"
         element={
           <ProtectedRoute allowedRoles={['admin']}>
-            <div className="p-8">Admin Dashboard (Create this)</div>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminUsers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/services"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminServices />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/reviews"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminReviews />
           </ProtectedRoute>
         }
       />
